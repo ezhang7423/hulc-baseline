@@ -112,7 +112,8 @@ class HulcDataModule(pl.LightningDataModule):
                 dataset,
                 batch_size=dataset.batch_size,
                 num_workers=dataset.num_workers,
-                pin_memory=False,
+                pin_memory=True,
+                persistent_workers=True
             )
             for key, dataset in self.train_datasets.items()
         }
@@ -123,7 +124,8 @@ class HulcDataModule(pl.LightningDataModule):
                 dataset,
                 batch_size=dataset.batch_size,
                 num_workers=dataset.num_workers,
-                pin_memory=False,
+                pin_memory=True,
+                persistent_workers=True
             )
             for key, dataset in self.val_datasets.items()
         }
