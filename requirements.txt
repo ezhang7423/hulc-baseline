@@ -9,14 +9,14 @@ omegaconf
 plotly
 ftfy
 pyhash
-pytorch-lightning==1.5.9
-torch==1.10.1
+pytorch-lightning==1.6.5
+# torch==1.10.1
 torchvision
-MulticoreTSNE
+# MulticoreTSNE
 gitpython
 scipy
 sentence-transformers
-pytorch3d
+# pytorch3d
 gym
 moviepy
 tqdm

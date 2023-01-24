@@ -5,6 +5,19 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "hulc/training.py",
+      "console": "integratedTerminal",
+      "args": [
+        "trainer.gpus=1",
+        "datamodule.root_data_dir=/data/task_D_D",
+        "logger=tb_logger"
+      ],
+      "justMyCode": true
+    },
+    {
       "name": "test dataloading",
       "type": "python",
       "request": "launch",

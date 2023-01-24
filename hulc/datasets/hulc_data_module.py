@@ -73,8 +73,9 @@ class HulcDataModule(pl.LightningDataModule):
 
             val_shmem_loader = SharedMemoryLoader(self.datasets_cfg, self.val_dir)
             val_shm_lookup = val_shmem_loader.load_data_in_shared_memory()
-
+            
             save_shm_lookup(train_shm_lookup, val_shm_lookup)
+            
 
     def setup(self, stage=None):
         transforms = load_dataset_statistics(self.training_dir, self.val_dir, self.transforms)
@@ -101,6 +102,7 @@ class HulcDataModule(pl.LightningDataModule):
             if self.use_shm:
                 train_dataset.setup_shm_lookup(train_shm_lookup)
                 val_dataset.setup_shm_lookup(val_shm_lookup)
+                # breakpoint()
             key = dataset.key
             self.train_datasets[key] = train_dataset
             self.val_datasets[key] = val_dataset
