@@ -12,11 +12,13 @@
       "console": "integratedTerminal",
       "args": [
         "trainer.gpus=1",
-        "datamodule.root_data_dir=/local/task_D_D",
+        "datamodule.root_data_dir=/mnt/edward/data2/eddie/calvin/task_D_D",
         "logger=tb_logger",
-        "callbacks.rollout_lh.skip_epochs=0",
-        "hydra.run.dir=/local/runs/2023-01-24/21-45-56",
-        "callbacks.rollout_lh.rollout_freq=1",
+        // "callbacks.rollout_lh.skip_epochs=0",
+        // "hydra.run.dir=/local/runs/2023-01-24/21-45-56",
+        // "callbacks.rollout_lh.rollout_freq=",
+        "~callbacks.rollout_lh",
+        // "~callbacks.rollout"
       ],
       "justMyCode": true
     },

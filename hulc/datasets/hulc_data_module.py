@@ -47,6 +47,7 @@ class HulcDataModule(pl.LightningDataModule):
         self.transforms = transforms
 
         self.use_shm = "shm_dataset" in self.datasets_cfg.lang_dataset._target_
+        self.dummy = 'dummy' in kwargs['model']
 
     def prepare_data(self, *args, **kwargs):
         # check if files already exist
@@ -102,7 +103,8 @@ class HulcDataModule(pl.LightningDataModule):
             if self.use_shm:
                 train_dataset.setup_shm_lookup(train_shm_lookup)
                 val_dataset.setup_shm_lookup(val_shm_lookup)
-                #breakpoint()
+                if self.dummy:
+                    breakpoint()
             key = dataset.key
             self.train_datasets[key] = train_dataset
             self.val_datasets[key] = val_dataset
