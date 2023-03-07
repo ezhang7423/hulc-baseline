@@ -11,7 +11,7 @@ defaults:
   - override hydra/hydra_logging: colorlog
 
 seed: 42
-log_dir: ../
+log_dir: ../data
 slurm: false
 
 hydra:
