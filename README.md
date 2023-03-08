@@ -1,4 +1,8 @@
-# HULC
+# This is a fork of [HULC](https://github.com/lukashermann/hulc/tree/fb14d5461ae54f919d52c0c30131b38f806ef8db) 
+
+This fork is installable with `pip install git+https://github.com/ezhang7423/hulc-baseline.git`. Note that it does NOT install tacto, as this dependency is not used.
+
+## HULC
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/mees/hulc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mees/hulc/context:python)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/mees/hulc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mees/hulc/alerts/)
