@@ -16,7 +16,7 @@ version = "0.1.0"
 description = ""
 authors = ["Oier Mees <meeso@informatik.uni-freiburg.de>"]
 readme = "README.md"
-packages = [{include = "hulc_baseline"}]
+packages = [{include = "hulc"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
