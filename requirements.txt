@@ -5,18 +5,16 @@ hydra-core==1.1.1
 hydra-colorlog
 matplotlib
 opencv-python
-omegaconf
+omegaconf==2.1.0
 plotly
 ftfy
 pyhash
 pytorch-lightning==1.6.5
-# torch==1.10.1
 torchvision
 # MulticoreTSNE
 gitpython
 scipy
 sentence-transformers
-# pytorch3d
 gym
 moviepy
 tqdm
