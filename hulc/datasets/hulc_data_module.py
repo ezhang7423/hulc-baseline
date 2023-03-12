@@ -47,6 +47,7 @@ class HulcDataModule(pl.LightningDataModule):
         self.transforms = transforms
 
         self.use_shm = "shm_dataset" in self.datasets_cfg.lang_dataset._target_
+        self.dummy = 'dummy' in kwargs['model']
 
     def prepare_data(self, *args, **kwargs):
         # check if files already exist
@@ -73,8 +74,9 @@ class HulcDataModule(pl.LightningDataModule):
 
             val_shmem_loader = SharedMemoryLoader(self.datasets_cfg, self.val_dir)
             val_shm_lookup = val_shmem_loader.load_data_in_shared_memory()
-
+            
             save_shm_lookup(train_shm_lookup, val_shm_lookup)
+            
 
     def setup(self, stage=None):
         transforms = load_dataset_statistics(self.training_dir, self.val_dir, self.transforms)
@@ -101,6 +103,8 @@ class HulcDataModule(pl.LightningDataModule):
             if self.use_shm:
                 train_dataset.setup_shm_lookup(train_shm_lookup)
                 val_dataset.setup_shm_lookup(val_shm_lookup)
+                if self.dummy:
+                    breakpoint()
             key = dataset.key
             self.train_datasets[key] = train_dataset
             self.val_datasets[key] = val_dataset
@@ -112,7 +116,8 @@ class HulcDataModule(pl.LightningDataModule):
                 dataset,
                 batch_size=dataset.batch_size,
                 num_workers=dataset.num_workers,
-                pin_memory=False,
+                pin_memory=True,
+                persistent_workers=True
             )
             for key, dataset in self.train_datasets.items()
         }
@@ -123,7 +128,8 @@ class HulcDataModule(pl.LightningDataModule):
                 dataset,
                 batch_size=dataset.batch_size,
                 num_workers=dataset.num_workers,
-                pin_memory=False,
+                pin_memory=True,
+                persistent_workers=True
             )
             for key, dataset in self.val_datasets.items()
         }

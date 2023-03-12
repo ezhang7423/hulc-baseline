@@ -1,4 +1,10 @@
-# HULC
+# This is a fork of [HULC](https://github.com/lukashermann/hulc/tree/fb14d5461ae54f919d52c0c30131b38f806ef8db) 
+
+Importantly, it contains a faster dataloader for compressed datasets, and also fixes a bug with the existing shared memory loader that saves ~20 minutes each run. The `lcd` branch additionally contains specific modifications made for [Language Control Diffusion](https://lcd.eddie.win).
+
+In order to preload all the dataset into shared memory and save ~20 minutes each run, run `python3 cache_dataset.py` after installing the repository and downloading the dataset. This will start a background python process in tmux, which you can run indefinitely. In total, this will use around 81GB of memory.
+
+## HULC
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/mees/hulc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mees/hulc/context:python)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/mees/hulc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mees/hulc/alerts/)

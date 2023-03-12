@@ -3,6 +3,6 @@ save_dir: .
 name: play_lmp
 group: play_lmp
 log_model: false
-project: "multi_play"
-entity: "multimodal_control"
+project: "baseline_reproduction"
+entity: <REPLACE WITH YOUR WANDB ORG>
 id: ???
