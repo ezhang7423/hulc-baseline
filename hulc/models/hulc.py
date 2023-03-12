@@ -84,12 +84,7 @@ class Hulc(pl.LightningModule):
         super(Hulc, self).__init__()
         self.perceptual_encoder = hydra.utils.instantiate(perceptual_encoder, device=self.device)
         self.setup_input_sizes(
-            self.perceptual_encoder,
-            plan_proposal,
-            plan_recognition,
-            visual_goal,
-            action_decoder,
-            distribution,
+            self.perceptual_encoder, plan_proposal, plan_recognition, visual_goal, action_decoder, distribution
         )
         # plan networks
         self.dist = hydra.utils.instantiate(distribution)
@@ -152,12 +147,7 @@ class Hulc(pl.LightningModule):
 
     @staticmethod
     def setup_input_sizes(
-        perceptual_encoder,
-        plan_proposal,
-        plan_recognition,
-        visual_goal,
-        action_decoder,
-        distribution,
+        perceptual_encoder, plan_proposal, plan_recognition, visual_goal, action_decoder, distribution
     ):
         """
         Configure the input feature sizes of the respective parts of the network.
@@ -244,10 +234,7 @@ class Hulc(pl.LightningModule):
             rank_zero_info(f"Inferring number of training steps, set to {self.lr_scheduler.num_training_steps}")
             rank_zero_info(f"Inferring number of warmup steps from ratio, set to {self.lr_scheduler.num_warmup_steps}")
         scheduler = hydra.utils.instantiate(self.lr_scheduler, optimizer)
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": 1},
-        }
+        return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": 1}}
 
     def lmp_train(
         self, perceptual_emb: torch.Tensor, latent_goal: torch.Tensor, train_acts: torch.Tensor, robot_obs: torch.Tensor
@@ -815,7 +802,7 @@ class Hulc(pl.LightningModule):
         self.latent_goal = None
         self.rollout_step_counter = 0
 
-    def step(self, obs, goal):
+    def step(self, obs, goal, direct=False):
         """
         Do one step of inference with the model.
 
@@ -829,7 +816,7 @@ class Hulc(pl.LightningModule):
         # replan every replan_freq steps (default 30 i.e every second)
         if self.rollout_step_counter % self.replan_freq == 0:
             if "lang" in goal:
-                self.plan, self.latent_goal = self.get_pp_plan_lang(obs, goal)
+                self.plan, self.latent_goal = self.get_pp_plan_lang(obs, goal, direct=direct)
             else:
                 self.plan, self.latent_goal = self.get_pp_plan_vision(obs, goal)
         # use plan to predict actions with current observations
@@ -838,10 +825,7 @@ class Hulc(pl.LightningModule):
         return action
 
     def predict_with_plan(
-        self,
-        obs: Dict[str, Any],
-        latent_goal: torch.Tensor,
-        sampled_plan: torch.Tensor,
+        self, obs: Dict[str, Any], latent_goal: torch.Tensor, sampled_plan: torch.Tensor
     ) -> torch.Tensor:
         """
         Pass observation, goal and plan through decoder to get predicted action.
@@ -882,14 +866,9 @@ class Hulc(pl.LightningModule):
         with torch.no_grad():
             perceptual_emb = self.perceptual_encoder(imgs, depth_imgs, state)
             latent_goal = self.visual_goal(perceptual_emb[:, -1])
-            # ------------Plan Proposal------------ #
-            pp_state = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
-            pp_dist = self.dist.get_dist(pp_state)
-            sampled_plan = self.dist.sample_latent_plan(pp_dist)
-        self.action_decoder.clear_hidden_state()
-        return sampled_plan, latent_goal
+        return self.get_proposal(perceptual_emb, latent_goal)
 
-    def get_pp_plan_lang(self, obs: dict, goal: dict) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_pp_plan_lang(self, obs: dict, goal: dict, direct=False) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Use plan proposal network to sample new plan using a visual goal embedding.
 
@@ -903,7 +882,11 @@ class Hulc(pl.LightningModule):
         """
         with torch.no_grad():
             perceptual_emb = self.perceptual_encoder(obs["rgb_obs"], obs["depth_obs"], obs["robot_obs"])
-            latent_goal = self.language_goal(goal["lang"])
+            latent_goal = self.language_goal(goal["lang"]) if not direct else goal["lang"]
+        return self.get_proposal(perceptual_emb, latent_goal)
+
+    def get_proposal(self, perceptual_emb, latent_goal):
+        with torch.no_grad():
             # ------------Plan Proposal------------ #
             pp_state = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
             pp_dist = self.dist.get_dist(pp_state)
