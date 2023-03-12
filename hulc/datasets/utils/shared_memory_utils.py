@@ -231,7 +231,6 @@ class SharedMemoryLoader:
         # check if all necessary shared memories are already loaded
         if shm_lookup is not None:
             print("shm_lookup exists")
-            # return shmem, shapes, sizes, dtypes, shm_lookup
             try:
                 if np.all(
                     [

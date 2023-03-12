@@ -1,16 +1,11 @@
-from collections import namedtuple
 import logging
 from multiprocessing.shared_memory import SharedMemory
-import os
-import shutil
 from typing import Dict, List, Optional
-import tqdm
 import numpy as np
 
 from hulc.datasets.base_dataset import BaseDataset
 
 logger = logging.getLogger(__name__)
-fakeshm = namedtuple('fakeshm', 'buf')
 
 
 class ShmDataset(BaseDataset):
@@ -48,24 +43,7 @@ class ShmDataset(BaseDataset):
         self.shapes = shm_lookup["shapes"]
         self.sizes = shm_lookup["sizes"]
         self.dtypes = shm_lookup["dtypes"]
-        self.dataset_type = "train" if "training" in self.abs_datasets_dir.as_posix() else "val"
-        # attach to shared memories
-        # if os.path.exists('/data/shmem'):
-        #     try:
-        #         for key in self.episode_lookup_dict:
-        #             if not os.path.exists(f"/dev/shm/{self.dataset_type}_{key}"):
-        #                 print(f'Loading {self.dataset_type}_{key} to shm...')
-        #                 shutil.copy(f"/data/shmem/{self.dataset_type}_{key}", f"/dev/shm/{self.dataset_type}_{key}")
-        #     except OSError:
-        #         pass
-        # else:
-        #     try:
-        #         os.makedirs('/data/shmem', exist_ok=False)
-        #         for key in self.episode_lookup_dict:
-        #             shutil.copy(f"/dev/shm/{self.dataset_type}_{key}", f"/data/shmem/{self.dataset_type}_{key}")
-        #     except OSError:
-        #         pass
-
+        self.dataset_type = "train" if "training" in self.abs_datasets_dir.as_posix() else "val"    
         self.shared_memories = {
             key: SharedMemory(name=f"{self.dataset_type}_{key}") for key in self.episode_lookup_dict
         }

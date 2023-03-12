@@ -4,5 +4,5 @@ name: play_lmp
 group: play_lmp
 log_model: false
 project: "baseline_reproduction"
-entity: "lang-diffusion"
+entity: <REPLACE WITH YOUR WANDB ORG>
 id: ???
