@@ -1,6 +1,7 @@
 import logging
 from multiprocessing.shared_memory import SharedMemory
 from typing import Dict, List, Optional
+
 import numpy as np
 
 from hulc.datasets.base_dataset import BaseDataset
@@ -43,7 +44,8 @@ class ShmDataset(BaseDataset):
         self.shapes = shm_lookup["shapes"]
         self.sizes = shm_lookup["sizes"]
         self.dtypes = shm_lookup["dtypes"]
-        self.dataset_type = "train" if "training" in self.abs_datasets_dir.as_posix() else "val"    
+        self.dataset_type = "train" if "training" in self.abs_datasets_dir.as_posix() else "val"
+        # attach to shared memories
         self.shared_memories = {
             key: SharedMemory(name=f"{self.dataset_type}_{key}") for key in self.episode_lookup_dict
         }
