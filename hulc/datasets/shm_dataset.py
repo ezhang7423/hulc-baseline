@@ -70,3 +70,4 @@ class ShmDataset(BaseDataset):
         if self.with_lang:
             episode["language"] = self.lang_ann[self.lang_lookup[idx]][0]  # TODO check  [0]
         return episode
+        

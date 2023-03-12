@@ -815,7 +815,7 @@ class Hulc(pl.LightningModule):
         self.latent_goal = None
         self.rollout_step_counter = 0
 
-    def step(self, obs, goal, direct=False):
+    def step(self, obs, goal):
         """
         Do one step of inference with the model.
 
@@ -825,11 +825,11 @@ class Hulc(pl.LightningModule):
 
         Returns:
             Predicted action.
-        """        
+        """
         # replan every replan_freq steps (default 30 i.e every second)
         if self.rollout_step_counter % self.replan_freq == 0:
             if "lang" in goal:
-                self.plan, self.latent_goal = self.get_pp_plan_lang(obs, goal, direct=direct)
+                self.plan, self.latent_goal = self.get_pp_plan_lang(obs, goal)
             else:
                 self.plan, self.latent_goal = self.get_pp_plan_vision(obs, goal)
         # use plan to predict actions with current observations
@@ -853,7 +853,7 @@ class Hulc(pl.LightningModule):
 
         Returns:
             Predicted action.
-        """        
+        """
         with torch.no_grad():
             perceptual_emb = self.perceptual_encoder(obs["rgb_obs"], obs["depth_obs"], obs["robot_obs"])
             action = self.action_decoder.act(
@@ -882,10 +882,14 @@ class Hulc(pl.LightningModule):
         with torch.no_grad():
             perceptual_emb = self.perceptual_encoder(imgs, depth_imgs, state)
             latent_goal = self.visual_goal(perceptual_emb[:, -1])
-        return self.get_proposal(perceptual_emb, latent_goal)
+            # ------------Plan Proposal------------ #
+            pp_state = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
+            pp_dist = self.dist.get_dist(pp_state)
+            sampled_plan = self.dist.sample_latent_plan(pp_dist)
+        self.action_decoder.clear_hidden_state()
+        return sampled_plan, latent_goal
 
-
-    def get_pp_plan_lang(self, obs: dict, goal: dict, direct=False) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_pp_plan_lang(self, obs: dict, goal: dict) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Use plan proposal network to sample new plan using a visual goal embedding.
 
@@ -899,11 +903,7 @@ class Hulc(pl.LightningModule):
         """
         with torch.no_grad():
             perceptual_emb = self.perceptual_encoder(obs["rgb_obs"], obs["depth_obs"], obs["robot_obs"])
-            latent_goal = self.language_goal(goal["lang"]) if not direct else goal['lang']
-        return self.get_proposal(perceptual_emb, latent_goal)
-    
-    def get_proposal(self, perceptual_emb, latent_goal):
-        with torch.no_grad():
+            latent_goal = self.language_goal(goal["lang"])
             # ------------Plan Proposal------------ #
             pp_state = self.plan_proposal(perceptual_emb[:, 0], latent_goal)
             pp_dist = self.dist.get_dist(pp_state)
