@@ -1,6 +1,6 @@
 # This is a fork of [HULC](https://github.com/lukashermann/hulc/tree/fb14d5461ae54f919d52c0c30131b38f806ef8db) 
 
-This fork is installable with `pip install git+https://github.com/ezhang7423/hulc-baseline.git`. Note that it does NOT install tacto, as this dependency is not used.
+Importantly, it contains a faster dataloader for compressed datasets, and also fixes a bug with the existing shared memory loader that saves ~20 minutes each iteration. The `lcd` branch additionally contains specific modifications made for [Language Control Diffusion](https://lcd.eddie.win).
 
 ## HULC
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
