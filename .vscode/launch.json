@@ -12,10 +12,9 @@
       "console": "integratedTerminal",
       "args": [
         "trainer.gpus=1",
-        "datamodule.root_data_dir=/mnt/edward/data2/eddie/calvin/task_D_D",
+        "datamodule.root_data_dir=<PATH/TO/TASK_D_D>",
         "logger=tb_logger",
         // "callbacks.rollout_lh.skip_epochs=0",
-        // "hydra.run.dir=/local/runs/2023-01-24/21-45-56",
         // "callbacks.rollout_lh.rollout_freq=",
         "~callbacks.rollout_lh",
         // "~callbacks.rollout"
@@ -31,13 +30,12 @@
       "justMyCode": true,
       "args": [
         "trainer.gpus=1",
-        "datamodule.root_data_dir=/mnt/edward/data2/eddie/calvin/task_D_D",
+        "datamodule.root_data_dir=<PATH/TO/TASK_D_D>",
         "+trainer.check_val_every_n_epoch=1",
         // "datamodule.epoch_num_steps=1000",
         // "datamodule.datasets.lang_dataset.normalize_mode=",
         //"callbacks.rollout.ep_len=63",
         "model=dummy",
-        "trainer.precision=32",
         "logger=tb_logger"
       ]
     }
