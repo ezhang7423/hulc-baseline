@@ -3,9 +3,6 @@ from itertools import chain
 import logging
 import multiprocessing
 import os
-import time
-import tqdm
-
 from typing import Any
 
 import hydra
@@ -40,17 +37,17 @@ def divide_across_ranks(elements, world_size, rank):
     return elements // world_size + rest(elements, world_size, rank)
 
 
-def sequences_for_rank(eval_sequences):
+def sequences_for_rank(num_sequences):
     """
     When using ddp, determine how many sequences every process should evaluate.
     """
     rank = dist.get_rank()
     ws = dist.get_world_size()
-    num_seq_per_gpu = divide_across_ranks(len(eval_sequences), ws, rank)
+    num_seq_per_gpu = divide_across_ranks(num_sequences, ws, rank)
     num_workers = multiprocessing.cpu_count() // ws
     return [
         seq.tolist()
-        for seq in np.array_split(eval_sequences, ws)[rank][:num_seq_per_gpu]
+        for seq in np.array_split(get_sequences(num_sequences, num_workers=num_workers), ws)[rank][:num_seq_per_gpu]
     ]
 
 
@@ -138,16 +135,10 @@ class RolloutLongHorizon(Callback):
             self.lang_embeddings = LangEmbeddings(
                 dataset.abs_datasets_dir, dataset.lang_folder, device=pl_module.device
             )
-            indices, ordering, sequences = torch.load("/local/(indices,ordering,seq).pt", map_location="cpu")
-            eval_sequences = []
-            for t in indices:
-                for i in range(20):
-                    eval_sequences.append(sequences[indices[t][i]])
-            
             if dist.is_available() and dist.is_initialized():
-                self.eval_sequences = sequences_for_rank(eval_sequences)                
+                self.eval_sequences = sequences_for_rank(self.num_sequences)
             else:
-                self.eval_sequences = eval_sequences
+                self.eval_sequences = get_sequences(self.num_sequences)
 
     def on_validation_epoch_end(self, trainer: Trainer, pl_module: LightningModule, *args) -> None:  # type: ignore
         if pl_module.current_epoch == 0 and self.skip_epochs > 0:
@@ -164,35 +155,22 @@ class RolloutLongHorizon(Callback):
             results = gather_results(results)
             count = Counter(results)  # type: ignore
             print()
-            import wandb
-            import json
-
-            if wandb.run is not None:
-                wandb.log({f'eval/sr_{t}': v/20 for t, v in count.items()}, commit=True)                
-            for t, v in count.items():
-                pl_module.log(f'eval/sr_{t}', torch.tensor(v/20), on_step=False, sync_dist=True)
-            # for i in range(1, 6):
-            #     n_success = sum(count[j] for j in reversed(range(i, 6)))
-            #     sr = n_success / len(results)
-            #     pl_module.log(f"eval_lh/sr_chain_{i}", torch.tensor(sr), on_step=False, sync_dist=True)
-            #     log_rank_0(f"{i} / 5 subtasks: {n_success} / {len(results)} sequences, SR: {sr * 100:.1f}%")
-            # avg_seq_len = np.mean(results)
-            # pl_module.log("eval_lh/avg_seq_len", torch.tensor(avg_seq_len), on_step=False, sync_dist=True)
-            # log_rank_0(f"Average successful sequence length: {avg_seq_len:.1f}")
+            for i in range(1, 6):
+                n_success = sum(count[j] for j in reversed(range(i, 6)))
+                sr = n_success / len(results)
+                pl_module.log(f"eval_lh/sr_chain_{i}", torch.tensor(sr), on_step=False, sync_dist=True)
+                log_rank_0(f"{i} / 5 subtasks: {n_success} / {len(results)} sequences, SR: {sr * 100:.1f}%")
+            avg_seq_len = np.mean(results)
+            pl_module.log("eval_lh/avg_seq_len", torch.tensor(avg_seq_len), on_step=False, sync_dist=True)
+            log_rank_0(f"Average successful sequence length: {avg_seq_len:.1f}")
             print()
-            if dist.is_available() and dist.is_initialized() and dist.get_rank() != 0:
-                return
-            json.dump(count, open(f'/local/eval_{time.time()}.json', 'w'))
-            
-
 
     def evaluate_policy(self, model):
         results = []
-        for i, (initial_state, eval_sequence) in tqdm.tqdm(enumerate(self.eval_sequences)):
+        for i, (initial_state, eval_sequence) in enumerate(self.eval_sequences):
             record = i < self.num_videos
-            success, subtask = self.evaluate_sequence(model, initial_state, eval_sequence, record, i)
-            if success:
-                results.append(subtask)
+            result = self.evaluate_sequence(model, initial_state, eval_sequence, record, i)
+            results.append(result)
             if record:
                 self.rollout_video.write_to_tmp()
         return results
@@ -215,7 +193,10 @@ class RolloutLongHorizon(Callback):
             success = self.rollout(model, subtask, record)
             if record:
                 self.rollout_video.draw_outcome(success)
-            return success, subtask
+            if success:
+                success_counter += 1
+            else:
+                return success_counter
         return success_counter
 
     def rollout(self, model, subtask, record):
