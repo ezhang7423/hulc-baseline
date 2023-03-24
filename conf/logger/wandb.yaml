@@ -4,5 +4,5 @@ name: play_lmp
 group: play_lmp
 log_model: false
 project: "baseline_reproduction"
-entity: <REPLACE WITH YOUR WANDB ORG>
+entity: <REPLACE WITH YOUR WANDB ORG> #!! Change me
 id: ???
