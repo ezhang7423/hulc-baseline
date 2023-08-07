@@ -84,7 +84,7 @@ class BaseDataset(Dataset):
         self.min_window_size = min_window_size
         self.max_window_size = max_window_size
         self.abs_datasets_dir = datasets_dir
-        self.lang_folder = lang_folder  # if self.with_lang else None
+        self.lang_folder = 'lang_annotations'  # if self.with_lang else None
         self.aux_lang_loss_window = aux_lang_loss_window
         assert "validation" in self.abs_datasets_dir.as_posix() or "training" in self.abs_datasets_dir.as_posix()
         self.validation = "validation" in self.abs_datasets_dir.as_posix()
