@@ -11,6 +11,7 @@ import torch
 
 from hulc.models.hulc import Hulc
 from hulc.utils.utils import add_text, format_sftp_path
+from lcd import REPO_PATH
 
 hasher = pyhash.fnv1_32()
 logger = logging.getLogger(__name__)
@@ -28,11 +29,12 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, 
     # since we don't use the trainer during inference, manually set up data_module
     cfg.datamodule.datasets = datasets_cfg
     cfg.datamodule.root_data_dir = dataset_path
-    data_module = hydra.utils.instantiate(cfg.datamodule, num_workers=0)
-    data_module.prepare_data()
-    data_module.setup()
-    dataloader = data_module.val_dataloader()
-    dataset = dataloader.dataset.datasets["lang"]
+    # data_module = hydra.utils.instantiate(cfg.datamodule, num_workers=0)
+    # data_module.prepare_data()
+    # data_module.setup()
+    # dataloader = data_module.val_dataloader()
+    # dataset = dataloader.dataset.datasets["lang"]
+    dataset = torch.load( REPO_PATH/'dataset.pt')
     device = torch.device(f"cuda:{device_id}")
 
     if lang_embeddings is None:
@@ -51,7 +53,7 @@ def get_default_model_and_env(train_folder, dataset_path, checkpoint, env=None, 
     model = model.cuda(device)
     print("Successfully loaded model.")
 
-    return model, env, data_module, lang_embeddings
+    return model, env, None, lang_embeddings
 
 
 def join_vis_lang(img, lang_text):
